@@ -2,21 +2,14 @@
 #include "kalman_Filter.h"
 #include "constants.h"
 
-using namespace std;
-
 static void main_Kalman(){
     std::ifstream infile("values.txt");
     std::ofstream outfile("newValues.txt");
-    
-    //Setup
+    int m = 20000;
     Filter filter;
-    
-     int m = 20000;
-
-     cv::Mat xCords, yCords, zCords, xAng, yAng, zAng;
-     cv::Mat xCords_kal, yCords_kal, zCords_kal, xAng_kal, yAng_kal, zAng_kal;    
-    
-    //Init all cords,angles as zeros 
+    cv::Mat xCords, yCords, zCords, xAng, yAng, zAng;
+    cv::Mat xCords_kal, yCords_kal, zCords_kal, xAng_kal, yAng_kal, zAng_kal;
+    //Init all cords,angles as zeros ...
      xCords = cv::Mat::zeros(m, 1, CV_32F);
      yCords = cv::Mat::zeros(m, 1, CV_32F);
      zCords = cv::Mat::zeros(m, 1, CV_32F);
@@ -32,7 +25,7 @@ static void main_Kalman(){
 
 
     //Load the values in the vectors 
-    for(int i= 0; i<10000; i++){
+    for(int i= 0; i<19000; i++){
         infile>> 
         xCords.at<float>(i,0) >> yCords.at<float>(i,0) >> zCords.at<float>(i,0) >> 
         xAng.at<float>(i,0) >> yAng.at<float>(i,0) >> zAng.at<float>(i,0) ;

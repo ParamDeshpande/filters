@@ -8,10 +8,7 @@
 #define KALMAN_FILTER_H
 
 // Include Files
-#include <stddef.h>
-#include <stdlib.h>
-#include <opencv2/core/core.hpp>
-#include <opencv2/opencv.hpp>
+#include "main.h"
 
 class Filter{
 public:
@@ -20,13 +17,12 @@ cv::Mat A, W, Q, V;
 cv::Mat scale,kalman_Gain;
 cv::Mat XHat_Previous,XHat_Priori, XHat_Posterior;
 cv::Mat estVar_Previous,estVar_Priori, estVar_Posterior;
-cv::Mat acc_Update;
+cv::Mat B;
 int i;
 double measurement;
 
 //Member functions 
-void kalman(int i,float measurement,cv::Mat XHat_Previous,cv::Mat estVar_Previous,cv::Mat XHat_Posterior,
-cv::Mat estVar_Posterior);
+float kalman(int i,float measurement,cv::Mat &XHat_Previous,cv::Mat &estVar_Previous);
 };
 
 #endif
