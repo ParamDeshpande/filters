@@ -1,0 +1,175 @@
+// Include Files
+#include <opencv2/core/core.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv/highgui.h>
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "kalman_Filter.h"
+#include "main.h"
+#include <fstream>
+#include <iostream>
+
+using namespace std;
+
+std::ifstream infile("values.txt");
+std::ofstream outfile("newValues.txt");
+
+int m = 20000;
+
+static void main_kalmanF(){
+Filter F;
+cv::Mat xCords, yCords, zCords, xAng, yAng, zAng;
+cv::Mat xCords_kal, yCords_kal, zCords_kal, xAng_kal, yAng_kal, zAng_kal;
+  xCords = cv::Mat::zeros(m, 1, CV_32F);
+  yCords = cv::Mat::zeros(m, 1, CV_32F);
+  zCords = cv::Mat::zeros(m, 1, CV_32F);
+  xAng = cv::Mat::zeros(m, 1, CV_32F);
+  yAng = cv::Mat::zeros(m, 1, CV_32F);
+  zAng = cv::Mat::zeros(m, 1, CV_32F);
+  xCords_kal = cv::Mat::zeros(m, 1, CV_32F);
+  yCords_kal = cv::Mat::zeros(m, 1, CV_32F);
+  zCords_kal = cv::Mat::zeros(m, 1, CV_32F);
+  xAng_kal = cv::Mat::zeros(m, 1, CV_32F);
+  yAng_kal = cv::Mat::zeros(m, 1, CV_32F);
+  zAng_kal = cv::Mat::zeros(m, 1, CV_32F);
+
+  //Load the values in the vectors 
+  for(int i= 0; i<15000; i++){
+  infile>> 
+  xCords.at<float>(i,0) >> yCords.at<float>(i,0) >> zCords.at<float>(i,0) >> 
+  xAng.at<float>(i,0) >> yAng.at<float>(i,0) >> zAng.at<float>(i,0) ;
+  //outfile << xCords.at<float>(i,0) <<"\t"<< yCords.at<float>(i,0) <<"\t"<<zCords.at<float>(i,0) << endl;
+  }
+  
+  cv::Mat XHat_Previous, XHat_Posterior;
+  cv::Mat estVar_Previous,estVar_Priori, estVar_Posterior;
+   XHat_Previous = (cv::Mat_<float>(3,1) <<
+		0.000,
+    0.000,
+    0.000);
+    XHat_Posterior = (cv::Mat_<float>(3,1) <<
+		0.0000,
+    0.0000,
+    0.0000);
+
+ estVar_Previous =  (cv::Mat_<float>(3,3) <<
+		 0, 0, 0 ,
+     0, 0, 0 ,
+     0, 0, 0);
+
+ estVar_Posterior = (cv::Mat_<float>(3,3) <<
+		 0, 0, 0 ,
+     0, 0, 0 ,
+     0, 0, 0);
+
+for(int i=3000 ; i<10000; i++){
+F.kalman(i,xCords.at<float>(i,0),XHat_Previous,estVar_Previous,XHat_Posterior,estVar_Posterior);
+xCords_kal.at<float>(i,0) = XHat_Posterior.at<float>(0,0);
+XHat_Posterior.copyTo(XHat_Previous);
+estVar_Posterior.copyTo(estVar_Previous);
+}
+
+  cv::Mat YHat_Previous, YHat_Posterior;
+  cv::Mat estVarY_Previous,estVarY_Priori, estVarY_Posterior;
+   YHat_Previous = (cv::Mat_<float>(3,1) <<
+		0.000,
+    0.000,
+    0.000);
+    YHat_Posterior = (cv::Mat_<float>(3,1) <<
+		0.0000,
+    0.0000,
+    0.0000);
+
+ estVarY_Previous =  (cv::Mat_<float>(3,3) <<
+		 0, 0, 0 ,
+      0, 0, 0 ,
+      0, 0, 0);
+
+ estVarY_Posterior = (cv::Mat_<float>(3,3) <<
+		 0, 0, 0 ,
+      0, 0, 0 ,
+      0, 0, 0);
+/*
+for(int i=0 ; i<5; i++){
+F.kalman(1,yCords.at<float>(i,0),YHat_Previous,estVarY_Previous,YHat_Posterior,estVarY_Posterior);
+yCords_kal.at<float>(i,0) = YHat_Posterior.at<float>(0,0);
+YHat_Posterior.copyTo(YHat_Previous);
+estVarY_Posterior.copyTo(estVarY_Previous);
+}
+
+ cv::Mat ZHat_Previous, ZHat_Posterior;
+  cv::Mat estVarZ_Previous,estVarZ_Priori, estVarZ_Posterior;
+   ZHat_Previous = (cv::Mat_<float>(3,1) <<
+		0.000,
+    0.000,
+    0.000);
+    ZHat_Posterior = (cv::Mat_<float>(3,1) <<
+		0.0000,
+    0.0000,
+    0.0000);
+
+ estVarZ_Previous =  (cv::Mat_<float>(3,3) <<
+		 0, 0, 0 ,
+      0, 0, 0 ,
+      0, 0, 0);
+
+ estVarZ_Posterior = (cv::Mat_<float>(3,3) <<
+		 0, 0, 0 ,
+      0, 0, 0 ,
+      0, 0, 0);
+
+for(int i=0 ; i<5; i++){
+F.kalman(1,zCords.at<float>(i,0),ZHat_Previous,estVarZ_Previous,ZHat_Posterior,estVarZ_Posterior);
+zCords_kal.at<float>(i,0) = ZHat_Posterior.at<float>(0,0);
+ZHat_Posterior.copyTo(ZHat_Previous);
+estVarZ_Posterior.copyTo(estVarZ_Previous);
+}
+*/
+//Write back into the new file
+  for(int i=0; i<12000; i++){
+  outfile << xCords_kal.at<float>(i,0) <<"\t"<< yCords_kal.at<float>(i,0) <<"\t"<<zCords_kal.at<float>(i,0) << endl;
+  }
+
+
+
+  
+//std::cout<<"[debug-main] xhat_posterior "<< XHat_Posterior<<std::endl;
+//std::cout<<"[debug-main] estVar_posterior "<< estVar_Posterior<<std::endl;
+
+//std::cout<<"[debug-main] xnew "<< XHat_Posterior.at<float>(0,0) <<" " << xCords_kal.at<float>(i,0)<<std::endl;
+
+#ifdef LOGGING
+
+std::cout<<"[main] estvar_post = ";
+for(int l =0; l< 3; l++)
+{
+  for(int g = 0; g < 3 ; g++)
+  {
+    std::cout<<estVar_Posterior.at<float>(l,g)<<" ";
+  }
+}
+std::cout<<std::endl<<" [main] xhat_posterior = ";
+
+  for(int g = 0; g < 3 ; g++)
+  {
+    std::cout<<XHat_Posterior.at<float>(g,0)<<" ";
+  }
+
+std::cout<<std::endl;
+
+#endif
+
+}
+
+int main(int, const char * const []){
+  
+  main_kalmanF();
+  
+  return 0;
+}
+
+//
+// File trailer for main.cpp
+//
+// [EOF]
+//
