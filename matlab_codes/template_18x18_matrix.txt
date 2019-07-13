@@ -1,0 +1,210 @@
+/*
+
+function [ XHat_Updated , cov_Updated ] = kalman6d( imu, gps ,XHat_Prev , cov_Prev , fps_Hz)
+
+    dT =  1/fps_Hz;
+
+    %18x18
+     A = [
+ 
+     %  1       2       3       4       5       6       7       8       9       10      11      12      13      14       15      16      17      18   (also 18)
+ 
+     
+     %Positions
+     1       0       0       0       0       0       dT       0       0       0       0       0      0.5*dT*dT        0       0       0       0       0;
+     0       1       0       0       0       0       0       dT       0       0       0       0       0       0.5*dT*dT       0       0       0       0;
+     0       0       1       0       0       0       0       0       dT       0       0       0       0       0       0.5*dT*dT       0       0       0; 
+     0       0       0       1       0       0       0       0       0       dT       0       0       0       0       0       0.5*dT*dT       0       0;
+     0       0       0       0       1       0       0       0       0       0       dT       0       0       0       0       0       0.5*dT*dT       0;
+     0       0       0       0       0       1       0       0       0       0       0       dT       0       0       0       0       0       0.5*dT*dT;
+  
+      % Velocities
+     0       0       0       0       0       0       1       0       0       0       0       0       dT       0       0       0       0       0;
+     0       0       0       0       0       0       0       1       0       0       0       0       0       dT       0       0       0       0;
+     0       0       0       0       0       0       0       0       1       0       0       0       0       0       dT       0       0       0;
+     0       0       0       0       0       0       0       0       0       1       0       0       0       0       0       dT       0       0;
+     0       0       0       0       0       0       0       0       0       0       1       0       0       0       0       0       dT       0;
+     0       0       0       0       0       0       0       0       0       0       0       1       0       0       0       0       0       dT;
+  
+      % Acceleration
+         0       0       0       0       0       0       0       0       0       0       0       0       1       0       0       0       0       0;
+         0       0       0       0       0       0       0       0       0       0       0       0       0       1       0       0       0       0;
+         0       0       0       0       0       0       0       0       0       0       0       0       0       0       1       0       0       0;
+         0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       1       0       0;
+         0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       1       0;
+         0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       1;
+         0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+ 
+    ];
+    B = [
+        %  gx      gy      gz      ax      ay      az
+
+        %Position
+        0       0       0       0.5*dT*dT       0       0;
+        0       0       0       0       0.5*dT*dT       0;
+        0       0       0       0       0       0.5*dT*dT;
+        dT       0       0       0       0       0;
+        0       dT       0       0       0       0;
+        0       0       dT       0       0       0;
+
+        %Velocity
+        0       0       0       dT       0       0;
+        0       0       0       0       dT       0;
+        0       0       0       0       0       dT;
+        1       0       0       0       0       0;
+        0       1       0       0       0       0;
+        0       0       1       0       0       0;
+
+        %Acceleration
+        0       0       0       1       0       0;
+        0       0       0       0       1       0;
+        0       0       0       0       0       1;
+        1/dT       0       0       0       0       0;
+        0       1/dT       0       0       0       0;
+        0       0       1/dT       0       0       0;
+
+    ];
+    cov = [
+
+
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+
+
+
+    ];
+    
+    var_x = 
+    var_y = 
+    var_z =
+    var_roll =
+    var_pitch =
+    var_yaw =
+    var_vx =
+    var_vy =
+    var_vz =
+    var_w_roll =
+    var_w_pitch =
+    var_w_yaw =
+    var_ax =
+    var_ay =
+    var_az =
+    var_a_roll =
+    var_a_pitch =
+    var_a_yaw =
+    var_gps_x =
+    var_gps_y =
+    var_gps_z =
+    
+    
+    R = [
+
+        var_x       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       var_y       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       var_z       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       var_roll       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       var_pitch       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       var_yaw       0       0       0       0       0       0       0       0       0       0       0       0;
+
+
+        0       0       0       0       0       0       var_vx       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       var_vy       0       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       var_vz       0       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       var_w_roll       0       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       var_w_pitch       0       0       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       var_w_yaw       0       0       0       0       0       0;
+
+
+        0       0       0       0       0       0       0       0       0       0       0       0       var_ax       0       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       var_ay       0       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       var_az       0       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       var_a_roll       0       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       var_a_pitch       0;
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       var_a_yaw;
+
+
+    ];
+    Q = [
+
+        var_gps_x       0      0;    
+        0       var_gps_y      0;
+        0       0      var_gps_z;
+
+    ];
+    H = [
+
+        1       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       1       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+        0       0       1       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0;
+
+    ];
+
+    %IMU  CONSTANT_BIAS_NOISE 
+    W = [
+        1.6968e-04*(fps_Hz^(0.5)) + 1.9393e-05*(dT)*(fps_Hz^(0.5));
+        1.6968e-04*(fps_Hz^(0.5)) + 1.9393e-05*(dT)*(fps_Hz^(0.5));
+        1.6968e-04*(fps_Hz^(0.5)) + 1.9393e-05*(dT)*(fps_Hz^(0.5));
+        2.0000e-3*(fps_Hz^(0.5)) +  3.0000e-3*(dT)*(fps_Hz^(0.5));
+        2.0000e-3*(fps_Hz^(0.5)) +  3.0000e-3*(dT)*(fps_Hz^(0.5));
+        2.0000e-3*(fps_Hz^(0.5)) +  3.0000e-3*(dT)*(fps_Hz^(0.5));
+
+    ];
+
+    %GPS CONSTANT_BIAS_NOISE
+    V = [0.0005 ; 0.0001 ; 0.0001 ];
+    
+    %removing noise
+    U = imu - W;
+    Z = gps - V;
+    
+    %******equation matrices***********
+
+    %**********state extrapolation********
+    %XHat_Priori = A*XHat_Prev + B*U + W ;
+
+
+    %**********covariance extrapolation******
+    cov_Priori = A*cov_Prev*A' + Q; 
+
+
+    %***********Kalman Gain**********
+    gain = (cov_Priori*H')*((H*cov_Priori*H' + R )^-1);
+
+
+    %********State update equation*******
+    innovation = (Z - H*XHat_Priori);
+    XHat_Updated = XHat_Priori + gain*innovation;
+
+
+    %********Covariance update equation********
+    cov_Updated = (eye(3) - gain*H)*cov_Priori ;
+
+
+    XHat_Updated = (XHat_Prev);
+    cov_Updated = (cov_Prev);
+
+
+
+state_New = [ xpos; ypos; zpos; roll; pitch; yaw;  xvel; yvel; zvel; roll_w; pitch_w; yaw_w;   ax; ay; az; roll_acc; pitch_acc; yaw_acc;
+        ];
+imu = [gx;gy;gz;ax;ay;az];
+
+gps = [gps_x;gps_y;gps_z;gps_vx;gps_vy;gps_vz];
+    */
