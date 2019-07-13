@@ -1,3 +1,5 @@
+% ang position calculation using hp , lp and complimentary filter.
+
 xAng_Velocity = IMU_data(:,2);
 ax = IMU_data(:,5);
 ay = IMU_data(:,6);
