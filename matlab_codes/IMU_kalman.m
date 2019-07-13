@@ -1,3 +1,10 @@
+%{
+    Pose(aka x,y,z roll,pitch,yaw) estimation using IMU data filtered via kalman filter
+    state matrix is has 18 elements (elem, del_elem, double_del_elem)*6 
+    
+%}
+
+% m = max entries of data
 m = 36000;
 
 xpos = zeros(m,1);
@@ -59,7 +66,7 @@ state_New = [ xpos(i); ypos(i); zpos(i); roll(i); pitch(i); yaw(i);
                 imu(i,6);
                 
     ];
-
+    % 11 maintains gps and imu timeframe as they both have diff freq 
     if((i - i_prev) > 11)
         j = j+1;
         i_prev = i;
