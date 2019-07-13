@@ -1,3 +1,5 @@
+% plain integration to calc ang vel
+% may use to calc bias against actual benchmarks 
 xAng_Velocity = IMU_data(4500:6000,2);
 M_Freq = 200;
 delT = 1/M_Freq;
