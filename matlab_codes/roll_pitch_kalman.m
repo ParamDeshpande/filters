@@ -17,7 +17,7 @@ for i = 1:t
     trueang(i,2) = remap(trueang(i,2));
 
 end
-
+%import IMU_data file as "imudata"
 imu = [imudata(:,2) imudata(:,3) imudata(:,4) imudata(:,5) imudata(:,6) imudata(:,7)];
 Ax = imu(:,4);
 Ay = imu(:,5);
@@ -26,10 +26,16 @@ Gx = imu(:,1);
 Gy = imu(:,2);
 Gz = imu(:,3);
 
-% Convert gyroscope measurements from degrees to radians
+% Convert gyroscope measurements from degrees to radians or according to your measurements
 Gx_rad = Gx; %* pi / 180.0;
 Gy_rad = Gy; %* pi / 180.0;
 Gz_rad = Gz; %* pi / 180.0;
+
+% For this kalman filter it is assumed that gyro gives aka predicts values and 
+% accelerometers values are considered as measurement benchmarks
+% Kalman gain is % belief between gyro and acc readings
+% May add GPS values as measurents and imu as prediction (not recommended)
+%State vector is phi , phi bias , theta , theta bias
 
 state = [0; 2.47; 0; 2.47];
 state_Matrix = zeros(t,4);
@@ -83,4 +89,5 @@ for i=1:t
     state_Matrix(i,1) = state_Matrix(i,1);
     state_Matrix(i,3) = state_Matrix(i,3);
 end
-% Convert all estimates to degree
+% May convert all estimates to degree accordingly ddepending on your values
+%********************END OF FILE********************
