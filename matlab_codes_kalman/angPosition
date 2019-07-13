@@ -1,8 +1,0 @@
-xAng_Velocity = IMU_data(4500:6000,2);
-M_Freq = 200;
-delT = 1/M_Freq;
-xAng_Position = zeros(1500,1);
-
-for i = 1:1400
-    xAng_Position = xAng_Position(i-1) + xAng_Velocity(i)*delT;
-end   
