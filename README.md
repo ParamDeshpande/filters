@@ -1,5 +1,7 @@
 # filters
+Sensor fusion codes for drone localization and outlier deetection and correction.
 
+## Installation
 The given files run kalman filter by using gcc
 
 Matlab_codes
